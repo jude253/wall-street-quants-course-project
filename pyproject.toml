@@ -1,0 +1,129 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "wall-street-quants-course-project"
+dynamic = ["version"]
+description = 'wall-street-quants-course-project'
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "Jude" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+    "pandas==2.2.2",
+    "matplotlib",
+    "numpy",
+    "seaborn",
+    "statsmodels",
+    "python-binance",
+    "pandera[pandas]",
+]
+
+[project.urls]
+Documentation = "https://github.com/jude253/wall-street-quants-course-project#readme"
+Issues = "https://github.com/jude253/wall-street-quants-course-project/issues"
+Source = "https://github.com/jude253/wall-street-quants-course-project"
+
+[tool.hatch.version]
+path = "src/wall_street_quants_course_project/__about__.py"
+
+[tool.hatch.envs.default]
+path = '.venv/default/'
+
+[tool.hatch.envs.default.scripts]
+# `hatch --env=default run sync-venv`
+# `hatch run sync-venv`
+# `hatch run default:sync-venv`
+sync-venv = "python -V"
+
+# `hatch run clean`
+clean = [
+  "rm -rf .venv dist .*_cache"
+]
+
+
+# Interpreter path: `.venv/notebook/bin/python`
+# Start notebook server:
+# ```
+# source .venv/notebook/bin/activate
+# jupyter notebook
+# ```
+# 
+# Connect notebook to kernal with the url?
+[tool.hatch.envs.notebook]
+path = '.venv/notebook/'
+dependencies = [
+  "notebook",
+  "ipykernel",
+  "ipympl",
+  "seaborn",
+  "nbconvert[webpdf]",
+]
+
+[tool.hatch.envs.notebook.scripts]
+# `hatch --env=notebook run sync-venv`
+# `hatch run notebook:sync-venv`
+sync-venv = "python -V"
+
+[tool.hatch.envs.build-tools]
+path = '.venv/build-tools/'
+extra-dependencies = [
+  "mypy>=1.0.0",
+  "types-boto3[boto3, secretsmanager]",
+  "ruff",
+  "pytest",
+]
+
+[tool.hatch.envs.build-tools.scripts]
+# `hatch run build-tools:sync-venv`
+sync-venv = "python -V"
+
+type-check = "mypy --install-types --non-interactive {args:src/glue tests}"
+
+# `hatch run build-tools:format`
+format = [
+  "ruff check --fix {args:src tests}",
+  "ruff format {args:src tests}",
+]
+# `hatch run build-tools:lint`
+lint = [
+  "ruff check {args:src/glue tests}",
+]
+
+# `hatch run build-tools:dev-check`
+dev-check = [
+  "type-check",
+  "lint",
+  "pytest tests",
+]
+
+[tool.coverage.run]
+source_pkgs = ["wall_street_quants_course_project", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/wall_street_quants_course_project/__about__.py",
+]
+
+[tool.coverage.paths]
+wall_street_quants_course_project = ["src/wall_street_quants_course_project", "*/wall-street-quants-course-project/src/wall_street_quants_course_project"]
+tests = ["tests", "*/wall-street-quants-course-project/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
