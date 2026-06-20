@@ -54,28 +54,38 @@ clean = [
 ]
 
 
-# Interpreter path: `.venv/notebook/bin/python`
-# Start notebook server:
-# ```
-# source .venv/notebook/bin/activate
-# jupyter notebook
-# ```
-# 
-# Connect notebook to kernal with the url?
 [tool.hatch.envs.notebook]
+
+# This environment contains dependencies for running notebooks such as
+# notebook, ipykernel, jupyterlab, and other related libraries.
+# 
+# Commands to run notebooks are intended to be maintained in the 
+# "notebook.scripts" section of the pyproject.toml.
+#
+#   Interpreter Path: `.venv/notebook/bin/python`
+#
 path = '.venv/notebook/'
 dependencies = [
   "notebook",
   "ipykernel",
   "ipympl",
-  "seaborn",
   "nbconvert[webpdf]",
+  # For Jupyter mcp:
+  "jupyterlab==4.4.1",
+  "jupyter-collaboration==4.0.2",
+  "jupyter-mcp-tools>=0.1.4",
+  "pycrdt",
 ]
 
 [tool.hatch.envs.notebook.scripts]
 # `hatch --env=notebook run sync-venv`
 # `hatch run notebook:sync-venv`
 sync-venv = "python -V"
+
+# `hatch run notebook:start-lab`
+start-lab = [
+  "jupyter lab --port 8888 --ip 127.0.0.1 --IdentityProvider.token $PERSONAL_JUPYTER_TOKEN"
+]
 
 [tool.hatch.envs.build-tools]
 path = '.venv/build-tools/'
@@ -91,6 +101,11 @@ extra-dependencies = [
 sync-venv = "python -V"
 
 type-check = "mypy --install-types --non-interactive {args:src/glue tests}"
+
+# `hatch run build-tools:test`
+test = [
+  "python -m pytest tests/",
+]
 
 # `hatch run build-tools:format`
 format = [
