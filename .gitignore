@@ -4,6 +4,7 @@ dist/
 dist-ssr
 *.local
 *localcode*
+.claude
 
 # JavaScript/TypeScript
 node_modules/
