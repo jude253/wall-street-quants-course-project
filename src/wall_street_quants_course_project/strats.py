@@ -61,7 +61,7 @@ def calc_dmu_parameterized_v1(
     px_lower_pct: float = 0.1,
     px_upper_pct: float = 0.9,
     px_ma_periods: int = 12,
-    px_delay_periods: int = 1,
+    delay_periods: int = 1,
     keep_outside_px: bool = True,
     vol_lower_pct: float = 0.1,
     vol_upper_pct: float = 0.9,
@@ -84,7 +84,11 @@ def calc_dmu_parameterized_v1(
         px_lower_pct: Lower percentile bound for the price-signal filter.
         px_upper_pct: Upper percentile bound for the price-signal filter.
         px_ma_periods: Rolling window length for the return signal.
-        px_delay_periods: Periods to delay (shift) the return signal by.
+        delay_periods: Periods to delay (shift) both the return signal
+            and the volume filter by, so neither reads data more recent
+            than ``delay_periods`` ago.  The rolling lookbacks shrink by
+            this amount so the total span stays ``px_ma_periods`` /
+            ``vol_ma_periods``.
         keep_outside_px: If True, keep names in the tails of the signal
             distribution (outside the band); otherwise keep the middle.
         vol_lower_pct: Lower percentile bound for the volume filter.
@@ -111,18 +115,26 @@ def calc_dmu_parameterized_v1(
     """
     ret = px.copy(deep=True).pct_change(fill_method=None)
 
-    # Momentum signal: delayed moving average of returns.
+    # Momentum signal: delayed moving average of returns.  delay_periods
+    # skips the most recent rows so the total lookback stays
+    # px_ma_periods.
     signal = (
         ret
-        .shift(px_delay_periods)
-        .rolling(px_ma_periods - px_delay_periods)
+        .shift(delay_periods)
+        .rolling(px_ma_periods - delay_periods)
         .mean()
     )
 
-    # Volume universe filter (skipped when use_vol_filter=False).
+    # Volume universe filter (skipped when use_vol_filter=False).  Uses
+    # the same delay_periods so the volume read is as stale as the price
+    # signal it gates.
     if use_vol_filter:
         vol_pct_rank = (
-            vol.rolling(vol_ma_periods).mean().rank(axis=1, pct=True)
+            vol
+            .shift(delay_periods)
+            .rolling(vol_ma_periods - delay_periods)
+            .mean()
+            .rank(axis=1, pct=True)
         )
         if keep_outside_vol:
             in_vol_universe = (
@@ -171,7 +183,7 @@ def plot_dmu_variation_v1(
     px_lower_pct: float = 0.1,
     px_upper_pct: float = 0.9,
     px_ma_periods: int = 12,
-    px_delay_periods: int = 1,
+    delay_periods: int = 1,
     keep_outside_px: bool = True,
     vol_lower_pct: float = 0.1,
     vol_upper_pct: float = 0.9,
@@ -212,7 +224,7 @@ def plot_dmu_variation_v1(
             px_lower_pct=px_lower_pct,
             px_upper_pct=px_upper_pct,
             px_ma_periods=px_ma_periods,
-            px_delay_periods=px_delay_periods,
+            delay_periods=delay_periods,
             keep_outside_px=keep_outside_px,
             vol_lower_pct=vol_lower_pct,
             vol_upper_pct=vol_upper_pct,
